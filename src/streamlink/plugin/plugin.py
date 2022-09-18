@@ -6,7 +6,21 @@ import re
 import time
 from functools import partial
 from http.cookiejar import Cookie
-from typing import Any, Callable, ClassVar, Dict, List, Match, NamedTuple, Optional, Pattern, Sequence, Type, Union
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    List,
+    Match,
+    NamedTuple,
+    Optional,
+    Pattern,
+    Sequence,
+    TYPE_CHECKING,
+    Type,
+    Union,
+)
 
 import requests.cookies
 
@@ -14,6 +28,9 @@ from streamlink.cache import Cache
 from streamlink.exceptions import FatalPluginError, NoStreamsError, PluginError
 from streamlink.options import Argument, Arguments, Options
 from streamlink.user_input import UserInputRequester
+
+if TYPE_CHECKING:  # pragma: no cover
+    from streamlink.session import Streamlink
 
 
 log = logging.getLogger(__name__)
@@ -214,7 +231,7 @@ class Plugin:
     """Metadata 'category' attribute: name of a game being played, a music genre, etc."""
 
     options = Options()
-    _url: Optional[str] = None
+    _url: str = ""
 
     # deprecated
     can_handle_url: Callable[[str], bool]
@@ -256,7 +273,7 @@ class Plugin:
 
         return cls.__new__(PluginWrapperBack, *args, **kwargs)
 
-    def __init__(self, session, url: str):
+    def __init__(self, session: "Streamlink", url: str):
         """
         :param session: The Streamlink session instance
         :param url: The input URL used for finding and resolving streams
@@ -270,13 +287,13 @@ class Plugin:
             key_prefix=self.module,
         )
 
-        self.session = session
-        self.url = url
+        self.session: "Streamlink" = session
+        self.url: str = url
 
         self.load_cookies()
 
     @property
-    def url(self) -> Optional[str]:
+    def url(self) -> str:
         """
         The plugin's input URL.
         Setting a new value will automatically update the :attr:`matches`, :attr:`matcher` and :attr:`match` data.
